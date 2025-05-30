@@ -1,0 +1,48 @@
+services:
+
+  user-service:
+    build:
+      context: .
+      dockerfile: apps/user/Dockerfile
+    container_name: user-service
+    ports:
+      - "${USER_SERVICE_PORT}:3000"
+    depends_on:
+      - postgres-db
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  postgres-db:
+    image: postgres:16
+    container_name: postgres-db
+    restart: always
+    ports:
+      - "${DB_PORT}:5432"
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql 
+    networks:
+      - app-network
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres-db
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+
+networks:
+  app-network:
+    driver: bridge

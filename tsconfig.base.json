@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@common": ["libs/common/src"],
+      "@common/*": ["libs/common/src/*"],
+      "@bootstrap": ["libs/bootstrap/src"],
+      "@bootstrap/*": ["libs/bootstrap/src/*"],
+      "@error": ["libs/error/src"],
+      "@error/*": ["libs/error/src/*"]
+    }
+  }
+}
