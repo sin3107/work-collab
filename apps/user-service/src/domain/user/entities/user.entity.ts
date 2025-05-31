@@ -16,6 +16,11 @@ export enum UserStatus {
     Suspended = 'Suspended',
 }
 
+export enum UserRole {
+  User = "User",
+  Admin = "Admin"
+}
+
 @Entity({ name: 'users' })
 export class UserEntity extends CommonEntity {
   @Column({ unique: true })
@@ -41,4 +46,10 @@ export class UserEntity extends CommonEntity {
 
   @Column({ nullable: true })
   fcmToken: string;
+
+  @Column({ nullable: true })
+  refreshToken: string;
+
+  @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
+  role: UserRole; 
 }
