@@ -1,36 +1,32 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { UserEntity } from 'apps/user-service/src/domain/user/entities/user.entity';
-import { Provider, UserStatus } from 'apps/user-service/src/domain/user/entities/user.entity';
+import { AuthEntity } from './entities/auth.entity';
 
 @Injectable()
 export class AuthRepository {
   constructor(
-    @InjectRepository(UserEntity)
-    private readonly userRepository: Repository<UserEntity>,
-  ) { }
+    @InjectRepository(AuthEntity)
+    private readonly repository: Repository<AuthEntity>,
+  ) {}
 
-  async createUserEntity(data: {
-    email: string;
-    password: string;
-    name?: string;
-    phone?: string;
-    birth?: Date;
-  }): Promise<UserEntity> {
-    return this.userRepository.create({
-      ...data,
-      provider: Provider.Local,
-      status: UserStatus.Active,
-    });
+  async saveRefreshToken(userId: number, refreshToken: string): Promise<void> {
+    const existing = await this.repository.findOne({ where: { userId } });
+
+    if (existing) {
+      existing.refreshToken = refreshToken;
+      await this.repository.save(existing);
+    } else {
+      const entity = this.repository.create({ userId, refreshToken });
+      await this.repository.save(entity);
+    }
   }
 
-  async save(user: UserEntity): Promise<UserEntity> {
-    return this.userRepository.save(user);
+  async findByUserId(userId: number): Promise<AuthEntity | null> {
+    return this.repository.findOne({ where: { userId } });
   }
 
-  async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
-    await this.userRepository.update(userId, { refreshToken });
+  async deleteByUserId(userId: number): Promise<void> {
+    await this.repository.delete({ userId });
   }
-
 }

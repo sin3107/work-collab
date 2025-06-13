@@ -21,12 +21,9 @@ export class AuthController {
 
   @Post('register')
   @SuccessResponse(HttpStatus.CREATED, [AuthSuccess['AUTH-S001']])
-  @ErrorResponse(HttpStatus.CONFLICT, [
-    AuthErrors.EMAIL_ALREADY_EXISTS,
-  ])
+  @ErrorResponse(HttpStatus.CONFLICT, [AuthErrors.EMAIL_ALREADY_EXISTS])
   async register(@Body() registerDto: RegisterRequestDTO): Promise<UserRegisterResponseDTO> {
-    const user = await this.authService.register(registerDto);
-    return user;
+    return await this.authService.register(registerDto);
   }
 
   @Post('login')
@@ -39,33 +36,33 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  @SuccessResponse(HttpStatus.OK, [AuthSuccess['AUTH-S003']])
-  @ErrorResponse(HttpStatus.UNAUTHORIZED, [
-    UserErrors.USER_NOT_FOUND,
-  ])
-  async getMe(@CurrentUser() user: UserEntity): Promise<GetMeResponseDTO> {
-    return this.authService.getMe(user);
-  }
+//   @Get('me')
+//   @UseGuards(JwtAuthGuard)
+//   @SuccessResponse(HttpStatus.OK, [AuthSuccess['AUTH-S003']])
+//   @ErrorResponse(HttpStatus.UNAUTHORIZED, [
+//     UserErrors.USER_NOT_FOUND,
+//   ])
+//   async getMe(@CurrentUser() user: UserEntity): Promise<GetMeResponseDTO> {
+//     return this.authService.getMe(user);
+//   }
 
-  @Post('logout')
-  @UseGuards(JwtAuthGuard)
-  @SuccessResponse(HttpStatus.OK, [AuthSuccess['AUTH-S004']])
-  @ErrorResponse(HttpStatus.UNAUTHORIZED, [
-    UserErrors.USER_NOT_FOUND,
-  ])
-  async logout(@CurrentUser() user: UserEntity): Promise<void> {
-    return this.authService.logout(user.id);
-  }
+//   @Post('logout')
+//   @UseGuards(JwtAuthGuard)
+//   @SuccessResponse(HttpStatus.OK, [AuthSuccess['AUTH-S004']])
+//   @ErrorResponse(HttpStatus.UNAUTHORIZED, [
+//     UserErrors.USER_NOT_FOUND,
+//   ])
+//   async logout(@CurrentUser() user: UserEntity): Promise<void> {
+//     return this.authService.logout(user.id);
+//   }
 
-  @Post('refresh')
-  @UseGuards(JwtRefreshAuthGuard)
-  @SuccessResponse(HttpStatus.OK, [AuthSuccess['AUTH-S005']])
-  @ErrorResponse(HttpStatus.UNAUTHORIZED, [
-    AuthErrors.INVALID_REFRESH_TOKEN,
-  ])
-  async refresh(@CurrentUser() user: UserEntity): Promise<{ accessToken: string; refreshToken: string }> {
-    return this.authService.refresh(user);
-  }
+//   @Post('refresh')
+//   @UseGuards(JwtRefreshAuthGuard)
+//   @SuccessResponse(HttpStatus.OK, [AuthSuccess['AUTH-S005']])
+//   @ErrorResponse(HttpStatus.UNAUTHORIZED, [
+//     AuthErrors.INVALID_REFRESH_TOKEN,
+//   ])
+//   async refresh(@CurrentUser() user: UserEntity): Promise<{ accessToken: string; refreshToken: string }> {
+//     return this.authService.refresh(user);
+//   }
 }

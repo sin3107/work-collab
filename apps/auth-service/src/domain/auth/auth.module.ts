@@ -1,14 +1,28 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { HttpModule } from '@nestjs/axios';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { UserEntity } from '../../../../user-service/src/domain/user/entities/user.entity';
 import { BcryptService } from '../../infra/security/bcrypt.service';
 import { AuthRepository } from './auth.repository';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { AuthEntity } from './entities/auth.entity';
+import { ErrorModule } from '@error';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserEntity])],
+  imports: [
+    ConfigModule,
+    HttpModule,
+    TypeOrmModule.forFeature([AuthEntity]),
+    JwtModule.register({}),
+    ErrorModule
+  ],
   controllers: [AuthController],
-  providers: [AuthService, AuthRepository, BcryptService],
+  providers: [
+    AuthService,
+    AuthRepository,
+    BcryptService,
+  ],
 })
 export class AuthModule {}

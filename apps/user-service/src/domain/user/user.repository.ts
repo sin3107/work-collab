@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { UserEntity } from './entities/user.entity';
 
 @Injectable()
-export class UsersRepository {
+export class UserRepository {
   constructor(
     @InjectRepository(UserEntity)
     private readonly repository: Repository<UserEntity>,
@@ -14,7 +14,12 @@ export class UsersRepository {
     return this.repository.findOne({ where: { email } });
   }
 
-  async findUserById(id: number): Promise<UserEntity | null> {
+  async findById(id: number): Promise<UserEntity | null> {
     return this.repository.findOne({ where: { id } });
+  }
+
+  async createUser(user: Partial<UserEntity>): Promise<UserEntity> {
+    const entity = this.repository.create(user);
+    return await this.repository.save(entity);
   }
 }
