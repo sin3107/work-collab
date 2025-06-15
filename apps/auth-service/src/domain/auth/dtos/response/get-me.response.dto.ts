@@ -1,5 +1,5 @@
+import { Provider, UserRole, UserStatus } from '@common';
 import { ApiProperty } from '@nestjs/swagger';
-import { Provider, UserStatus, UserRole } from './../../../../../../user-service/src/domain/user/entities/user.entity';
 
 export class GetMeResponseDTO {
   @ApiProperty()

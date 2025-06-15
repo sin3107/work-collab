@@ -13,7 +13,10 @@ import { ErrorModule } from '@error';
 @Module({
   imports: [
     ConfigModule,
-    HttpModule,
+    HttpModule.register({
+      timeout: 3000,
+      maxRedirects: 5,
+    }),
     TypeOrmModule.forFeature([AuthEntity]),
     JwtModule.register({}),
     ErrorModule

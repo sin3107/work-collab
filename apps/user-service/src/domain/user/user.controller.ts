@@ -5,34 +5,30 @@ import { CreateUserDto } from './dtos/request/create-user.request.dto';
 import { ErrorResponse, SuccessResponse } from '@common';
 import { UserErrors } from '@error/constants/user.errors';
 import { UserSuccess } from './response-defines/user-success';
+import { UserResponseDTO } from './dtos/response/user.response.dto';
 
 @Controller('users')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(private readonly userService: UserService) { }
 
-@Post()
+  @Post()
   @SuccessResponse(HttpStatus.CREATED, [UserSuccess['USER-S001']])
-  async create(@Body() dto: CreateUserDto): Promise<Partial<UserEntity>> {
-    const user = await this.userService.createUser(dto);
-    return {
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    };
+  async create(@Body() dto: CreateUserDto): Promise<UserResponseDTO> {
+    return await this.userService.createUser(dto);
+    
   }
 
   @Get('email/:email')
   @SuccessResponse(HttpStatus.OK, [UserSuccess['USER-S002']])
   @ErrorResponse(HttpStatus.NOT_FOUND, [UserErrors.USER_NOT_FOUND])
-  async findByEmail(@Param('email') email: string): Promise<UserEntity> {
+  async findByEmail(@Param('email') email: string): Promise<UserResponseDTO> {
     return await this.userService.getUserByEmail(email);
   }
 
   @Get(':id')
   @SuccessResponse(HttpStatus.OK, [UserSuccess['USER-S003']])
   @ErrorResponse(HttpStatus.NOT_FOUND, [UserErrors.USER_NOT_FOUND])
-  async findById(@Param('id') id: number): Promise<UserEntity> {
+  async findById(@Param('id') id: number): Promise<UserResponseDTO> {
     return await this.userService.getUserById(id);
   }
 }

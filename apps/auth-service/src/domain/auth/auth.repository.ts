@@ -8,25 +8,31 @@ export class AuthRepository {
   constructor(
     @InjectRepository(AuthEntity)
     private readonly repository: Repository<AuthEntity>,
-  ) {}
+  ) { }
 
-  async saveRefreshToken(userId: number, refreshToken: string): Promise<void> {
-    const existing = await this.repository.findOne({ where: { userId } });
-
-    if (existing) {
-      existing.refreshToken = refreshToken;
-      await this.repository.save(existing);
-    } else {
-      const entity = this.repository.create({ userId, refreshToken });
-      await this.repository.save(entity);
-    }
+  async createAuth(userId: number, password: string): Promise<AuthEntity> {
+    const entity = this.repository.create({ userId, password });
+    return await this.repository.save(entity);
   }
 
   async findByUserId(userId: number): Promise<AuthEntity | null> {
-    return this.repository.findOne({ where: { userId } });
+    return await this.repository.findOne({ where: { userId } });
   }
 
-  async deleteByUserId(userId: number): Promise<void> {
-    await this.repository.delete({ userId });
+  async saveRefreshToken(userId: number, refreshToken: string): Promise<boolean> {
+    const auth = await this.findByUserId(userId);
+    if (!auth) return false;
+
+    auth.refreshToken = refreshToken;
+    await this.repository.save(auth);
+    return true;
+  }
+
+  async removeRefreshToken(userId: number): Promise<void> {
+    const auth = await this.repository.findOne({ where: { userId } });
+    if (auth) {
+      auth.refreshToken = null;
+      await this.repository.save(auth);
+    }
   }
 }

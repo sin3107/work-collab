@@ -4,7 +4,9 @@ export type AuthErrorKeys =
   | 'EMAIL_ALREADY_EXISTS'
   | 'INVALID_CREDENTIALS'
   | 'INVALID_REFRESH_TOKEN'
-  | 'USER_SERVICE_COMMUNICATION_FAILED';
+  | 'USER_SERVICE_COMMUNICATION_FAILED'
+  | 'USER_STATUS_RESTRICTED'
+  | 'AUTH_NOT_FOUND';
 
 export const AuthErrors: Record<AuthErrorKeys, ErrorResponseOption> = {
   EMAIL_ALREADY_EXISTS: {
@@ -28,6 +30,20 @@ export const AuthErrors: Record<AuthErrorKeys, ErrorResponseOption> = {
     statusCode: 401,
     code: 'AUTH-E003',
   },
+  AUTH_NOT_FOUND: {
+    exampleTitle: '인증 정보 없음',
+    exampleDescription: '사용자의 인증 정보를 찾을 수 없습니다.',
+    message: '해당 사용자에 대한 인증 정보가 존재하지 않습니다.',
+    statusCode: 404,
+    code: 'AUTH-E004',
+  },
+  USER_STATUS_RESTRICTED: {
+    exampleTitle: '정지 또는 제한된 계정',
+    exampleDescription: '정지되었거나 탈퇴된 계정으로 accessToken 또는 refreshToken 요청 시 발생합니다.',
+    message: '계정 상태로 인해 요청이 거부되었습니다.',
+    statusCode: 403,
+    code: 'AUTH-E005',
+  },
   USER_SERVICE_COMMUNICATION_FAILED: {
     exampleTitle: '유저 서비스 응답 실패',
     exampleDescription: 'user-service와 통신 중 네트워크 오류 또는 예기치 못한 오류가 발생한 경우',
@@ -35,4 +51,5 @@ export const AuthErrors: Record<AuthErrorKeys, ErrorResponseOption> = {
     statusCode: 502,
     code: 'AUTH-E050',
   },
+
 };

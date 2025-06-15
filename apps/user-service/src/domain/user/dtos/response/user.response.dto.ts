@@ -1,5 +1,5 @@
+import { Provider, UserRole, UserStatus } from '@common';
 import { ApiProperty } from '@nestjs/swagger';
-import { UserRole } from '../../entities/user.entity';
 
 export class UserResponseDTO {
   @ApiProperty({ example: 1 })
@@ -11,6 +11,12 @@ export class UserResponseDTO {
   @ApiProperty({ example: '홍길동' })
   name: string;
 
-  @ApiProperty({ example: 'User', enum: UserRole })
+  @ApiProperty({ enum: Provider })
+  provider: Provider;
+
+  @ApiProperty({ enum: UserStatus })
+  status: UserStatus;
+
+  @ApiProperty({ enum: UserRole })
   role: UserRole;
 }
