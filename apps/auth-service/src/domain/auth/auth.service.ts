@@ -15,6 +15,7 @@ import { retry } from 'rxjs/operators';
 import { AxiosError } from 'axios';
 import { SocialUserPayload } from '@common';
 import { JwtPayload } from './passport/payloads/jwt.payload';
+import { SafeHttpService } from '@common/utils/safe-http.service';
 
 @Injectable()
 export class AuthService {
@@ -25,32 +26,37 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly safeHttp: SafeHttpService,
   ) { }
 
   async register(dto: RegisterRequestDTO): Promise<UserRegisterResponseDTO> {
     try {
-      await firstValueFrom(
-        this.httpService.get(`http://user-service:3001/users/email/${dto.email}`).pipe(
-          retry(2)
-        )
-      );
-      this.errorService.throw(AuthErrors.EMAIL_ALREADY_EXISTS);
-    } catch (error) {
-      if (error.response?.status !== 404) {
-        this.errorService.throw(AuthErrors.USER_SERVICE_COMMUNICATION_FAILED);
-      }
-    }
-
-    const { data: user } = await firstValueFrom(
-      this.httpService.post<UserRegisterResponseDTO>('http://user-service:3001/users', {
-        email: dto.email,
-        name: dto.name,
-        phone: dto.phone,
-        birth: dto.birth,
-      }).pipe(
-        retry(2)
+      await this.safeHttp.get(
+        `http://user-service:3001/users/email/${dto.email}`,
+        (error) => {
+          if (error.response?.status === 404) {
+            return null; // 이메일 없음 → 정상
+          }
+          return AuthErrors.USER_SERVICE_COMMUNICATION_FAILED;
+        }
       )
-    );
+      this.errorService.throw(AuthErrors.EMAIL_ALREADY_EXISTS);
+    } catch { }
+
+    const user = await this.safeHttp.post<UserRegisterResponseDTO>(
+      'http://user-service:3001/users', {
+      email: dto.email,
+      name: dto.name,
+      phone: dto.phone,
+      birth: dto.birth,
+    },
+      (error) => {
+        if (error.response?.status === 409) {
+          return AuthErrors.EMAIL_ALREADY_EXISTS;
+        }
+        return AuthErrors.USER_SERVICE_COMMUNICATION_FAILED;
+      }
+    )
 
     const hashedPassword = await this.bcryptService.hash(dto.password);
     await this.authRepository.createAuth(user.id, hashedPassword);
@@ -84,26 +90,30 @@ export class AuthService {
     let user;
 
     try {
-      const res = await firstValueFrom(
-        this.httpService.get(`http://user-service:3001/users/provider/${payload.provider}/${payload.providerId}`),
+      user = await this.safeHttp.get(
+        `http://user-service:3001/users/provider/${payload.provider}/${payload.providerId}`,
+        (error) => {
+          if (error.response?.status === 404) {
+            return null;
+          }
+          return AuthErrors.USER_SERVICE_COMMUNICATION_FAILED;
+        }
       );
-      user = res.data;
-    } catch (err) {
-      const axiosError = err as AxiosError
-      if (axiosError.response?.status === 404) {
-        const res = await firstValueFrom(
-          this.httpService.post(`http://user-service:3001/users/social`, payload),
+
+      if (!user) {
+        user = await this.safeHttp.post(
+          `http://user-service:3001/users/social`,
+          payload,
+          AuthErrors.USER_SERVICE_COMMUNICATION_FAILED
         );
-        user = res.data;
-      } else {
-        throw err;
       }
+    } catch {
+      this.errorService.throw(AuthErrors.USER_SERVICE_COMMUNICATION_FAILED);
     }
 
     const jwtPayload = { id: user.id, email: user.email, role: user.role };
     const accessToken = this.generateAccessToken(jwtPayload);
     const refreshToken = this.generateRefreshToken(jwtPayload);
-
 
     const updated = await this.authRepository.saveRefreshToken(user.id, refreshToken);
     if (!updated) {
@@ -115,12 +125,10 @@ export class AuthService {
 
 
   async getMe(userId: number): Promise<GetMeResponseDTO> {
-    const { data: userInfo } = await firstValueFrom(
-      this.httpService.get<GetMeResponseDTO>(`http://user-service:3001/users/${userId}`).pipe(
-        retry(2)
-      )
+    return await this.safeHttp.get<GetMeResponseDTO>(
+      `http://user-service:3001/users/${userId}`,
+      AuthErrors.USER_SERVICE_COMMUNICATION_FAILED
     );
-    return userInfo;
   }
 
 
@@ -129,16 +137,18 @@ export class AuthService {
   }
 
 
-  async refresh(user: { id: number; email: string; role: string }): Promise<LoginResponseDTO> {
+  async refresh(user: { id: number; email: string; role: string }, presentedToken: string): Promise<LoginResponseDTO> {
     const auth = await this.authRepository.findByUserId(user.id);
     if (!auth || !auth.refreshToken) {
       this.errorService.throw(AuthErrors.INVALID_REFRESH_TOKEN);
     }
 
-    const { data: userProfile } = await firstValueFrom(
-      this.httpService.get(`http://user-service:3001/users/${user.id}`).pipe(
-        retry(2)
-      )
+    if (auth.refreshToken !== presentedToken) {
+      this.errorService.throw(AuthErrors.INVALID_REFRESH_TOKEN);
+    }
+    const userProfile = await this.safeHttp.get<GetMeResponseDTO>(
+      `http://user-service:3001/users/${user.id}`,
+      AuthErrors.USER_SERVICE_COMMUNICATION_FAILED
     );
 
     if (userProfile.status !== 'Active') {
@@ -148,6 +158,7 @@ export class AuthService {
     const jwtPayload = { id: user.id, email: user.email, role: user.role };
     const accessToken = this.generateAccessToken(jwtPayload);
     const newRefreshToken = this.generateRefreshToken(jwtPayload);
+
     const updated = await this.authRepository.saveRefreshToken(user.id, newRefreshToken);
     if (!updated) {
       this.errorService.throw(AuthErrors.AUTH_NOT_FOUND);
@@ -176,9 +187,21 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string): Promise<{ id: number; email: string; role: string } | null> {
-    const { data: user } = await firstValueFrom(
-      this.httpService.get(`http://user-service:3001/users/email/${email}`).pipe(retry(2)),
-    ).catch(() => ({ data: null }));
+    let user: { id: number; email: string; role: string } | null = null;
+
+    try {
+      user = await this.safeHttp.get(
+        `http://user-service:3001/users/email/${email}`,
+        (error) => {
+          if (error.response?.status === 404) {
+            return null;
+          }
+          return AuthErrors.USER_SERVICE_COMMUNICATION_FAILED;
+        }
+      );
+    } catch {
+      return null;
+    }
 
     if (!user) return null;
 
