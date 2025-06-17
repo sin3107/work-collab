@@ -29,3 +29,6 @@ export * from './middlewares/logger.middleware';
 export * from './utils/enum.util';
 export * from './utils/make-instance.util';
 export * from './utils/merge.util';
+
+// passport
+export * from './passport/payloads/social.payload'

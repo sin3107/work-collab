@@ -21,6 +21,9 @@ export class UserEntity extends CommonEntity {
   @Column({ type: 'enum', enum: Provider, default: Provider.Local })
   provider: Provider;
 
+  @Column({ nullable: true })
+  providerId: string;
+
   @Column({ type: 'enum', enum: UserRole, default: UserRole.User })
   role: UserRole;
 }

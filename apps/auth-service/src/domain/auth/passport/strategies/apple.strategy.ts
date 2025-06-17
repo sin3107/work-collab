@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-apple';
 import { ConfigService } from '@nestjs/config';
-import { v4 as uuid } from 'uuid';
 import { Provider } from '@common';
 
 @Injectable()
@@ -19,24 +18,13 @@ export class AppleStrategy extends PassportStrategy(Strategy, 'apple') {
     });
   }
 
-  async validate(
-    accessToken: string,
-    refreshToken: string,
-    idToken: any,
-    profile: Profile,
-  ): Promise<{
-    provider: string;
-    providerId: string;
-    email: string;
-    name?: string;
-  }> {
-    const { id, emails } = profile;
-
-    return {
+  async validate(accessToken: string, refreshToken: string, idToken: any, profile: any, done: Function) {
+    const user = {
       provider: Provider.Apple,
-      providerId: id,
-      email: emails?.[0]?.value || `apple_${uuid()}@apple.com`,
-      name: profile.name?.firstName,
+      providerId: idToken.sub,
+      email: idToken.email,
+      name: profile?.name || null,
     };
+    done(null, user);
   }
 }

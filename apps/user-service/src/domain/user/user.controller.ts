@@ -2,7 +2,7 @@ import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserEntity } from './entities/user.entity';
 import { CreateUserDto } from './dtos/request/create-user.request.dto';
-import { ErrorResponse, SuccessResponse } from '@common';
+import { ErrorResponse, Provider, SocialUserPayload, SuccessResponse } from '@common';
 import { UserErrors } from '@error/constants/user.errors';
 import { UserSuccess } from './response-defines/user-success';
 import { UserResponseDTO } from './dtos/response/user.response.dto';
@@ -15,7 +15,7 @@ export class UserController {
   @SuccessResponse(HttpStatus.CREATED, [UserSuccess['USER-S001']])
   async create(@Body() dto: CreateUserDto): Promise<UserResponseDTO> {
     return await this.userService.createUser(dto);
-    
+
   }
 
   @Get('email/:email')
@@ -30,5 +30,19 @@ export class UserController {
   @ErrorResponse(HttpStatus.NOT_FOUND, [UserErrors.USER_NOT_FOUND])
   async findById(@Param('id') id: number): Promise<UserResponseDTO> {
     return await this.userService.getUserById(id);
+  }
+
+  @Get('provider/:provider/:providerId')
+  async findByProvider(
+    @Param('provider') provider: Provider,
+    @Param('providerId') providerId: string,
+  ) {
+    return await this.userService.findByProvider(provider, providerId);
+
+  }
+
+  @Post('social')
+  async createSocialUser(@Body() payload: SocialUserPayload) {
+    return this.userService.createSocialUser(payload);
   }
 }

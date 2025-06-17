@@ -1,6 +1,9 @@
 import { ErrorResponseOption } from "@common";
 
-export type UserErrorKeys = 'USER_NOT_FOUND' | 'TOKEN_VALIDATION_FAIL';
+export type UserErrorKeys =
+  'USER_NOT_FOUND' |
+  'TOKEN_VALIDATION_FAIL' |
+  'EMAIL_ALREADY_EXISTS';
 
 export const UserErrors: Record<UserErrorKeys, ErrorResponseOption> = {
   USER_NOT_FOUND: {
@@ -16,5 +19,12 @@ export const UserErrors: Record<UserErrorKeys, ErrorResponseOption> = {
     message: '토큰이 유효하지 않습니다.',
     statusCode: 401,
     code: 'USER-E002',
+  },
+  EMAIL_ALREADY_EXISTS: {
+    exampleTitle: '이메일 중복',
+    exampleDescription: '이미 가입된 이메일로 유저를 생성하려고 할 때',
+    message: '이미 해당 이메일로 가입된 유저가 존재합니다.',
+    statusCode: 409,
+    code: 'USER-E003',
   },
 };

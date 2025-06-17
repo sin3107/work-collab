@@ -1,8 +1,8 @@
-import { Body, Controller, Get, HttpStatus, Post, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Req, Request, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { RegisterRequestDTO } from './dtos/request/register.request.dto';
-import { CurrentUser, ErrorResponse, SuccessResponse } from '@common';
+import { CurrentUser, ErrorResponse, SocialUserPayload, SuccessResponse } from '@common';
 import { AuthErrors } from '@error/constants/auth.errors';
 import { AuthSuccess } from './response-defines/auth-success';
 import { UserRegisterResponseDTO } from './dtos/response/register.response.dto';
@@ -13,6 +13,7 @@ import { JwtRefreshAuthGuard } from './passport/guards/jwt-refresh.guard';
 import { LoginRequestDTO } from './dtos/request/login.request.dto';
 import { LoginResponseDTO } from './dtos/response/login.response.dto';
 import { LocalGuard } from './passport/guards/local-guard';
+import { AppleAuthGuard, GoogleAuthGuard, KakaoAuthGuard } from './passport/guards/social.guard';
 
 @Controller()
 export class AuthController {
@@ -32,8 +33,41 @@ export class AuthController {
     AuthErrors.INVALID_CREDENTIALS,
   ])
   @ApiBody({ type: LoginRequestDTO })
-  async login(@Request() req): Promise<LoginResponseDTO> {
+  async login(@Req() req): Promise<LoginResponseDTO> {
     return this.authService.login(req.user);
+  }
+
+  @Get('google/login')
+  @UseGuards(GoogleAuthGuard)
+  async googleLogin() {}
+
+  @Get('google/redirect')
+  @UseGuards(GoogleAuthGuard)
+  async googleRedirect(@Req() req) {
+    const payload: SocialUserPayload = req.user;
+    return this.authService.socialLogin(payload);
+  }
+
+  @Get('kakao/login')
+  @UseGuards(KakaoAuthGuard)
+  async kakaoLogin() {}
+
+  @Get('kakao/redirect')
+  @UseGuards(KakaoAuthGuard)
+  async kakaoRedirect(@Req() req) {
+    const payload: SocialUserPayload = req.user;
+    return this.authService.socialLogin(payload);
+  }
+
+  @Get('apple/login')
+  @UseGuards(AppleAuthGuard)
+  async appleLogin() {}
+
+  @Get('apple/redirect')
+  @UseGuards(AppleAuthGuard)
+  async appleRedirect(@Req() req) {
+    const payload: SocialUserPayload = req.user;
+    return this.authService.socialLogin(payload);
   }
 
   @Get('me')

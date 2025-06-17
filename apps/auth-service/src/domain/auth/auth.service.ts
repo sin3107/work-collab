@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { RegisterRequestDTO } from './dtos/request/register.request.dto';
 import { UserRegisterResponseDTO } from './dtos/response/register.response.dto';
-import { LoginRequestDTO } from './dtos/request/login.request.dto';
 import { LoginResponseDTO } from './dtos/response/login.response.dto';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
@@ -13,7 +12,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { GetMeResponseDTO } from './dtos/response/get-me.response.dto';
 import { retry } from 'rxjs/operators';
-
+import { AxiosError } from 'axios';
+import { SocialUserPayload } from '@common';
+import { JwtPayload } from './passport/payloads/jwt.payload';
 
 @Injectable()
 export class AuthService {
@@ -54,8 +55,8 @@ export class AuthService {
     const hashedPassword = await this.bcryptService.hash(dto.password);
     await this.authRepository.createAuth(user.id, hashedPassword);
 
-    const payload = { id: user.id, email: user.email, role: user.role };
-    const refreshToken = this.generateRefreshToken(payload);
+    const jwtPayload = { id: user.id, email: user.email, role: user.role };
+    const refreshToken = this.generateRefreshToken(jwtPayload);
     const updated = await this.authRepository.saveRefreshToken(user.id, refreshToken);
     if (!updated) {
       this.errorService.throw(AuthErrors.AUTH_NOT_FOUND);
@@ -66,11 +67,45 @@ export class AuthService {
 
 
   async login(user: { id: number; email: string; role: string }): Promise<LoginResponseDTO> {
-    const payload = { id: user.id, email: user.email, role: user.role };
-    const accessToken = this.generateAccessToken(payload);
-    const refreshToken = this.generateRefreshToken(payload);
+    const jwtPayload = { id: user.id, email: user.email, role: user.role };
+    const accessToken = this.generateAccessToken(jwtPayload);
+    const refreshToken = this.generateRefreshToken(jwtPayload);
     const updated = await this.authRepository.saveRefreshToken(user.id, refreshToken);
 
+    if (!updated) {
+      this.errorService.throw(AuthErrors.AUTH_NOT_FOUND);
+    }
+
+    return { accessToken, refreshToken };
+  }
+
+
+  async socialLogin(payload: SocialUserPayload): Promise<{ accessToken: string; refreshToken: string }> {
+    let user;
+
+    try {
+      const res = await firstValueFrom(
+        this.httpService.get(`http://user-service:3001/users/provider/${payload.provider}/${payload.providerId}`),
+      );
+      user = res.data;
+    } catch (err) {
+      const axiosError = err as AxiosError
+      if (axiosError.response?.status === 404) {
+        const res = await firstValueFrom(
+          this.httpService.post(`http://user-service:3001/users/social`, payload),
+        );
+        user = res.data;
+      } else {
+        throw err;
+      }
+    }
+
+    const jwtPayload = { id: user.id, email: user.email, role: user.role };
+    const accessToken = this.generateAccessToken(jwtPayload);
+    const refreshToken = this.generateRefreshToken(jwtPayload);
+
+
+    const updated = await this.authRepository.saveRefreshToken(user.id, refreshToken);
     if (!updated) {
       this.errorService.throw(AuthErrors.AUTH_NOT_FOUND);
     }
@@ -110,9 +145,9 @@ export class AuthService {
       this.errorService.throw(AuthErrors.USER_STATUS_RESTRICTED);
     }
 
-    const payload = { id: user.id, email: user.email, role: user.role };
-    const accessToken = this.generateAccessToken(payload);
-    const newRefreshToken = this.generateRefreshToken(payload);
+    const jwtPayload = { id: user.id, email: user.email, role: user.role };
+    const accessToken = this.generateAccessToken(jwtPayload);
+    const newRefreshToken = this.generateRefreshToken(jwtPayload);
     const updated = await this.authRepository.saveRefreshToken(user.id, newRefreshToken);
     if (!updated) {
       this.errorService.throw(AuthErrors.AUTH_NOT_FOUND);
@@ -125,7 +160,7 @@ export class AuthService {
   }
 
 
-  private generateAccessToken(payload: Record<string, any>): string {
+  private generateAccessToken(payload: JwtPayload): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.get('ACCESS_TOKEN_SECRET'),
       expiresIn: this.configService.get('ACCESS_TOKEN_EXPIRES_IN', '15m'),
@@ -133,7 +168,7 @@ export class AuthService {
   }
 
 
-  private generateRefreshToken(payload: Record<string, any>): string {
+  private generateRefreshToken(payload: JwtPayload): string {
     return this.jwtService.sign(payload, {
       secret: this.configService.get('REFRESH_TOKEN_SECRET'),
       expiresIn: this.configService.get('REFRESH_TOKEN_EXPIRES_IN', '14d'),
