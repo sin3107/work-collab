@@ -1,5 +1,9 @@
 # compiled output
 /dist
+*.js
+*.js.map
+apps/*/src/**/*.js
+apps/*/src/**/*.js.map
 /node_modules
 /build
 
