@@ -5,7 +5,6 @@ import { ConfigService } from '@nestjs/config';
 import { JwtPayload } from '../payloads/jwt.payload';
 import { ErrorService } from '@error';
 import { AuthErrors } from '@error/constants/auth.errors';
-import { UserErrors } from '@error/constants/user.errors';
 import { AuthRepository } from '../../auth.repository';
 
 @Injectable()
@@ -17,21 +16,28 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh-
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: configService.get('REFRESH_TOKEN_SECRET'),
       ignoreExpiration: false,
+      secretOrKeyProvider: async (_, rawJwtToken, done) => {
+        try {
+          const secret = configService.get<string>('REFRESH_TOKEN_SECRET');
+          done(null, secret);
+        } catch (err) {
+          done(err, null);
+        }
+      },
     });
   }
 
   async validate(payload: JwtPayload) {
-  const auth = await this.authRepository.findByUserId(payload.id);
-  if (!auth || !auth.refreshToken) {
-    this.errorService.throw(AuthErrors.INVALID_REFRESH_TOKEN);
-  }
+    const auth = await this.authRepository.findByUserId(payload.id);
+    if (!auth || !auth.refreshToken) {
+      this.errorService.throw(AuthErrors.INVALID_REFRESH_TOKEN);
+    }
 
-  return {
-    id: payload.id,
-    email: payload.email,
-    role: payload.role,
-  };
-}
+    return {
+      id: payload.id,
+      email: payload.email,
+      role: payload.role,
+    };
+  }
 }

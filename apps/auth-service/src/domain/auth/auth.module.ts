@@ -4,28 +4,30 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { BcryptService } from '../../infra/security/bcrypt.service';
 import { AuthRepository } from './auth.repository';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthEntity } from './entities/auth.entity';
 import { ErrorModule } from '@error';
+import { SafeHttpModule } from '@common/utils/safe-http.module';
+import { GlobalJwtModule } from '@bootstrap';
 
 @Module({
   imports: [
-    ConfigModule,
     HttpModule.register({
       timeout: 3000,
       maxRedirects: 5,
     }),
     TypeOrmModule.forFeature([AuthEntity]),
-    JwtModule.register({}),
-    ErrorModule
+    GlobalJwtModule,
+    ErrorModule,
+    SafeHttpModule
   ],
   controllers: [AuthController],
   providers: [
     AuthService,
     AuthRepository,
-    BcryptService,
+    BcryptService
   ],
 })
-export class AuthModule {}
+export class AuthModule { }

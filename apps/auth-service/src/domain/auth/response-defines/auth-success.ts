@@ -2,6 +2,7 @@ import { SuccessResponseOption } from '@common/decorators/success-response.decor
 import { UserRegisterResponseDTO } from '../dtos/response/register.response.dto';
 import { LoginResponseDTO } from '../dtos/response/login.response.dto';
 import { GetMeResponseDTO } from '../dtos/response/get-me.response.dto';
+import { VoidResponseDTO } from '@common';
 
 export type AuthSuccessKeys =
   | 'AUTH-S001'
@@ -30,7 +31,7 @@ export const AuthSuccess: Record<AuthSuccessKeys, SuccessResponseOption & { code
     code: 'AUTH-S003',
   },
   'AUTH-S004': {
-    model: null,
+    model: VoidResponseDTO,
     exampleTitle: '로그아웃 성공',
     exampleDescription: '정상적으로 로그아웃되었습니다.',
     code: 'AUTH-S004',

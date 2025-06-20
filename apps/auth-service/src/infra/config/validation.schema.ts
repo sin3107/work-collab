@@ -14,6 +14,9 @@ export const validationSchema = Joi.object({
   AUTH_DB_NAME: Joi.string().required(),
 
   // 추가적인 설정 (JWT 시크릿 등)
-  JWT_SECRET: Joi.string().required(),
-  JWT_EXPIRES_IN: Joi.string().default('1d'),
+  ACCESS_TOKEN_SECRET: Joi.string().required(),
+  ACCESS_TOKEN_EXPIRES_IN: Joi.string().default('15m'),
+
+  REFRESH_TOKEN_SECRET: Joi.string().required(),
+  REFRESH_TOKEN_EXPIRES_IN: Joi.string().default('14d'),
 });

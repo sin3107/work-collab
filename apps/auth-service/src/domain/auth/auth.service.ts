@@ -2,8 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { RegisterRequestDTO } from './dtos/request/register.request.dto';
 import { UserRegisterResponseDTO } from './dtos/response/register.response.dto';
 import { LoginResponseDTO } from './dtos/response/login.response.dto';
-import { HttpService } from '@nestjs/axios';
-import { firstValueFrom } from 'rxjs';
 import { BcryptService } from '../../infra/security/bcrypt.service';
 import { ErrorService } from '@error';
 import { AuthErrors } from '@error/constants/auth.errors';
@@ -11,16 +9,13 @@ import { AuthRepository } from './auth.repository';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { GetMeResponseDTO } from './dtos/response/get-me.response.dto';
-import { retry } from 'rxjs/operators';
-import { AxiosError } from 'axios';
 import { SocialUserPayload } from '@common';
 import { JwtPayload } from './passport/payloads/jwt.payload';
-import { SafeHttpService } from '@common/utils/safe-http.service';
+import { SafeHttpService } from '@common';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly httpService: HttpService,
     private readonly bcryptService: BcryptService,
     private readonly errorService: ErrorService,
     private readonly authRepository: AuthRepository,
@@ -172,10 +167,7 @@ export class AuthService {
 
 
   private generateAccessToken(payload: JwtPayload): string {
-    return this.jwtService.sign(payload, {
-      secret: this.configService.get('ACCESS_TOKEN_SECRET'),
-      expiresIn: this.configService.get('ACCESS_TOKEN_EXPIRES_IN', '15m'),
-    });
+    return this.jwtService.sign(payload);
   }
 
 

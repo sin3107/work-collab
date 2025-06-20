@@ -1,5 +1,3 @@
-// libs/common/src/utils/safe-http.service.ts
-
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { firstValueFrom } from 'rxjs';

@@ -1,15 +1,13 @@
 services:
-
-  services:
   auth-service:
     build:
       context: .
-      dockerfile: apps/auth/Dockerfile
+      dockerfile: apps/auth-service/Dockerfile
     container_name: auth-service
     ports:
       - "${AUTH_SERVICE_PORT}:3000"
     depends_on:
-      - user-service
+      - postgres-db
     env_file:
       - .env
     networks:
@@ -18,7 +16,7 @@ services:
   user-service:
     build:
       context: .
-      dockerfile: apps/user/Dockerfile
+      dockerfile: apps/user-service/Dockerfile
     container_name: user-service
     ports:
       - "${USER_SERVICE_PORT}:3001"

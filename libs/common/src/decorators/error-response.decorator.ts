@@ -1,7 +1,7 @@
 import { applyDecorators, HttpStatus } from '@nestjs/common';
 import { ApiExtraModels, ApiResponse, getSchemaPath } from '@nestjs/swagger';
-import { ErrorCommonResponse } from '@error/dtos/error-common-response.dto';
-import { HttpExceptionErrorResponseDto } from '@error/dtos/http-exception-error-response.dto';
+import { ErrorCommonResponse } from '@error';
+import { HttpExceptionErrorResponseDto } from '@error';
 import { makeInstanceByApiProperty } from '@common/utils/make-instance.util';
 
 export interface ErrorResponseOption {
