@@ -6,6 +6,8 @@ import { TeamListResponseDTO } from '../dtos/response/list-teams.response.dto';
 import { TeamMemberListResponseDTO } from '../dtos/response/list-team-members.response.dto';
 import { ChangeRoleResponseDTO } from '../dtos/response/change-role.response.dto';
 import { UpdateTeamResponseDTO } from '../dtos/response/update-team.response.dto';
+import { IssueInviteTokenResponseDTO } from '../dtos/response/issue-invite-token.response.dto';
+import { ResolveInviteTokenResponseDTO } from '../dtos/response/resolve-invite-token.response.dto';
 
 export type TeamSuccessKeys =
   | 'TEAM-S001' // 팀 생성
@@ -15,7 +17,11 @@ export type TeamSuccessKeys =
   | 'TEAM-S005' // 팀 삭제
   | 'TEAM-S006' // 팀원 목록 조회
   | 'TEAM-S007' // 팀 역할 변경
-  | 'TEAM-S008'; // 팀 정보 수정
+  | 'TEAM-S008' // 팀 정보 수정
+  | 'TEAM-S009' // 초대 토큰 발급
+  | 'TEAM-S010' // 초대 토큰 팀 확인
+  | 'TEAM-S011' // 초대 토큰 수락
+  | 'TEAM-S012'; // 초대 토큰 삭제
 
 export const TeamSuccess: Record<TeamSuccessKeys, SuccessResponseOption & { code: string }> = {
   'TEAM-S001': {
@@ -65,5 +71,29 @@ export const TeamSuccess: Record<TeamSuccessKeys, SuccessResponseOption & { code
     exampleTitle: '팀 정보 수정 성공',
     exampleDescription: '팀 정보가 성공적으로 수정되었습니다.',
     code: 'TEAM-S008',
+  },
+  'TEAM-S009': {
+    model: IssueInviteTokenResponseDTO,
+    exampleTitle: '초대 토큰 발급 성공',
+    exampleDescription: '지정한 팀에 대한 초대 토큰이 발급되었습니다.',
+    code: 'TEAM-S009',
+  },
+  'TEAM-S010': {
+    model: ResolveInviteTokenResponseDTO,
+    exampleTitle: '초대 토큰 확인 성공',
+    exampleDescription: '초대 토큰을 통해 팀 정보를 성공적으로 조회했습니다.',
+    code: 'TEAM-S010',
+  },
+  'TEAM-S011': {
+    model: VoidResponseDTO,
+    exampleTitle: '초대 수락 성공',
+    exampleDescription: '초대 토큰을 통해 팀에 성공적으로 참여하였습니다.',
+    code: 'TEAM-S011',
+  },
+  'TEAM-S012': {
+    model: VoidResponseDTO,
+    exampleTitle: '초대 토큰 삭제 성공',
+    exampleDescription: '해당 초대 토큰이 정상적으로 삭제되었습니다.',
+    code: 'TEAM-S012',
   },
 };

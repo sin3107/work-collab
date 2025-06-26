@@ -5,8 +5,8 @@ import { TeamEntity } from './entities/team.entity';
 import { UserTeamEntity } from './entities/user-team.entity';
 import { TeamRole } from '@common';
 import { CreateTeamRequestDTO } from './dtos/request/create-team.request.dto';
-import { UpdateTeamRequestDTO } from './dtos/request/update-team.request.dto';
-import { UpdateTeamResponseDTO } from './dtos/response/update-team.response.dto';
+import { TeamInviteTokenEntity } from './entities/team-invite-token.entity';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class TeamRepository {
@@ -15,6 +15,8 @@ export class TeamRepository {
         private readonly teamRepository: Repository<TeamEntity>,
         @InjectRepository(UserTeamEntity)
         private readonly userTeamRepository: Repository<UserTeamEntity>,
+        @InjectRepository(TeamInviteTokenEntity)
+        private readonly tokenRepository: Repository<TeamInviteTokenEntity>,
     ) { }
 
     async createTeam(dto: CreateTeamRequestDTO, createdBy: number): Promise<TeamEntity> {
@@ -84,4 +86,48 @@ export class TeamRepository {
         return true;
     }
 
+    async generateInviteToken(
+        teamId: number,
+        userId: number,
+        expiresAt?: Date | null,
+    ): Promise<TeamInviteTokenEntity> {
+        const token = randomUUID();
+
+        const inviteToken = this.tokenRepository.create({
+            token,
+            teamId,
+            createdBy: userId,
+            expiresAt,
+        });
+
+        return await this.tokenRepository.save(inviteToken);
+    }
+
+    async findTeamByToken(token: string): Promise<{ team: TeamEntity; token: TeamInviteTokenEntity } | null> {
+        const invite = await this.tokenRepository.findOne({
+            where: { token },
+            relations: ['team'],
+        });
+
+        if (!invite || (invite.expiresAt && invite.expiresAt < new Date())) {
+            return null;
+        }
+
+        return {
+            team: invite.team,
+            token: invite,
+        };
+    }
+
+    async isUserInTeam(userId: number, teamId: number): Promise<boolean> {
+        const existing = await this.userTeamRepository.findOne({
+            where: { userId, teamId },
+        });
+        return !!existing;
+    }
+
+    async deleteInviteToken(token: string): Promise<boolean> {
+        const result = await this.tokenRepository.delete({ token });
+        return result.affected > 0;
+    }
 }

@@ -9,7 +9,11 @@ export type TeamErrorKeys =
   | 'USER_ALREADY_IN_TEAM'
   | 'OWNER_CANNOT_LEAVE_TEAM'
   | 'TEAM_DELETE_FORBIDDEN'
-  | 'USER_SERVICE_COMMUNICATION_FAILED';
+  | 'USER_SERVICE_COMMUNICATION_FAILED'
+  | 'INVALID_INVITE_TOKEN'
+  | 'EXPIRED_INVITE_TOKEN'
+  | 'ALREADY_JOINED_VIA_TOKEN'
+  | 'NO_PERMISSION_TO_DELETE_TOKEN';
 
 export const TeamErrors: Record<TeamErrorKeys, ErrorResponseOption> = {
   TEAM_ALREADY_JOINED: {
@@ -68,6 +72,34 @@ export const TeamErrors: Record<TeamErrorKeys, ErrorResponseOption> = {
     statusCode: 403,
     code: 'TEAM-E008',
   },
+  INVALID_INVITE_TOKEN: {
+    exampleTitle: '유효하지 않은 초대 토큰',
+    exampleDescription: '서명이 위조되었거나 구조가 잘못된 초대 토큰',
+    message: '초대 토큰이 유효하지 않습니다.',
+    statusCode: 400,
+    code: 'TEAM-E009',
+  },
+  EXPIRED_INVITE_TOKEN: {
+    exampleTitle: '만료된 초대 토큰',
+    exampleDescription: '초대 토큰의 유효기간이 지난 경우',
+    message: '초대 토큰이 만료되었습니다.',
+    statusCode: 410,
+    code: 'TEAM-E010',
+  },
+  ALREADY_JOINED_VIA_TOKEN: {
+    exampleTitle: '이미 팀에 참여된 사용자',
+    exampleDescription: '초대 수락을 시도한 사용자가 이미 해당 팀에 속해 있는 경우',
+    message: '이미 팀에 참여 중인 사용자입니다.',
+    statusCode: 409,
+    code: 'TEAM-E011',
+  },
+  NO_PERMISSION_TO_DELETE_TOKEN: {
+    exampleTitle: '초대 토큰 삭제 권한 없음',
+    exampleDescription: '초대 토큰 생성자가 아닌 사용자가 삭제를 시도한 경우',
+    message: '해당 초대 토큰을 삭제할 권한이 없습니다.',
+    statusCode: 403,
+    code: 'TEAM-E012',
+  },
   USER_SERVICE_COMMUNICATION_FAILED: {
     exampleTitle: '유저 서비스 통신 실패',
     exampleDescription: 'user-service와의 네트워크 또는 서버 오류 발생 시',
@@ -75,4 +107,5 @@ export const TeamErrors: Record<TeamErrorKeys, ErrorResponseOption> = {
     statusCode: 502,
     code: 'TEAM-E050',
   },
+
 };

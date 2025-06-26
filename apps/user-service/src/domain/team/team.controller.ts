@@ -15,6 +15,9 @@ import { ChangeRoleRequestDTO } from './dtos/request/chage-role.request.dto';
 import { ChangeRoleResponseDTO } from './dtos/response/change-role.response.dto';
 import { UpdateTeamResponseDTO } from './dtos/response/update-team.response.dto';
 import { UpdateTeamRequestDTO } from './dtos/request/update-team.request.dto';
+import { IssueInviteTokenRequestDTO } from './dtos/request/issue-invite-token.request.dto';
+import { IssueInviteTokenResponseDTO } from './dtos/response/issue-invite-token.response.dto';
+import { ResolveInviteTokenResponseDTO } from './dtos/response/resolve-invite-token.response.dto';
 
 @UseGuards(AuthGuard)
 @Controller('teams')
@@ -114,6 +117,54 @@ export class TeamController {
         @CurrentUser() user: { id: number },
     ): Promise<VoidResponseDTO> {
         return await this.teamService.leaveTeam(teamId, user.id);
+    }
+
+    @Post(':teamId/token')
+    @ApiOperation({ summary: '초대 토큰 발급' })
+    @SuccessResponse(HttpStatus.CREATED, [TeamSuccess['TEAM-S009']])
+    @ErrorResponse(HttpStatus.FORBIDDEN, [TeamErrors.NO_PERMISSION_TO_INVITE])
+    async issueInviteToken(
+        @Param('teamId') teamId: number,
+        @Body() dto: IssueInviteTokenRequestDTO,
+        @CurrentUser() user: { id: number }
+    ): Promise<IssueInviteTokenResponseDTO> {
+        return this.teamService.issueInviteToken(teamId, user.id, dto.expiresInHours);
+    }
+
+    @Get('invite/:token')
+    @ApiOperation({ summary: '초대 토큰 검증 및 팀 정보 조회' })
+    @SuccessResponse(HttpStatus.OK, [TeamSuccess['TEAM-S010']])
+    @ErrorResponse(HttpStatus.BAD_REQUEST, [TeamErrors.INVALID_INVITE_TOKEN])
+    @ErrorResponse(HttpStatus.GONE, [TeamErrors.EXPIRED_INVITE_TOKEN])
+    async resolveInviteToken(
+        @Param('token') token: string,
+    ): Promise<ResolveInviteTokenResponseDTO> {
+        return await this.teamService.resolveInviteToken(token);
+    }
+
+    @Patch('/invite/accept/:token')
+    @ApiOperation({ summary: '초대 토큰 수락' })
+    @SuccessResponse(HttpStatus.OK, [TeamSuccess['TEAM-S011']])
+    @ErrorResponse(HttpStatus.BAD_REQUEST, [TeamErrors.INVALID_INVITE_TOKEN])
+    @ErrorResponse(HttpStatus.GONE, [TeamErrors.EXPIRED_INVITE_TOKEN])
+    @ErrorResponse(HttpStatus.CONFLICT, [TeamErrors.ALREADY_JOINED_VIA_TOKEN])
+    async acceptInviteToken(
+        @Param('token') token: string,
+        @CurrentUser() user: { id: number },
+    ): Promise<VoidResponseDTO> {
+        return this.teamService.acceptInviteToken(token, user.id);
+    }
+
+    @Delete('invites/:token')
+    @ApiOperation({ summary: '초대 토큰 삭제' })
+    @SuccessResponse(HttpStatus.OK, [TeamSuccess['TEAM-S012']])
+    @ErrorResponse(HttpStatus.NOT_FOUND, [TeamErrors.INVALID_INVITE_TOKEN])
+    @ErrorResponse(HttpStatus.FORBIDDEN, [TeamErrors.NO_PERMISSION_TO_DELETE_TOKEN])
+    async deleteInviteToken(
+        @Param('token') token: string,
+        @CurrentUser() user: { id: number }
+    ): Promise<VoidResponseDTO> {
+        return this.teamService.deleteInviteToken(token, user.id);
     }
 
 }

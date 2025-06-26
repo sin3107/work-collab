@@ -11,6 +11,9 @@ import { TeamMemberListResponseDTO } from './dtos/response/list-team-members.res
 import { ChangeRoleResponseDTO } from './dtos/response/change-role.response.dto';
 import { UpdateTeamRequestDTO } from './dtos/request/update-team.request.dto';
 import { UpdateTeamResponseDTO } from './dtos/response/update-team.response.dto';
+import { v4 as uuidv4 } from 'uuid';
+import { IssueInviteTokenResponseDTO } from './dtos/response/issue-invite-token.response.dto';
+import { ResolveInviteTokenResponseDTO } from './dtos/response/resolve-invite-token.response.dto';
 
 @Injectable()
 export class TeamService {
@@ -160,4 +163,94 @@ export class TeamService {
 
         return { message: "성공적으로 처리되었습니다." }
     }
+
+    async issueInviteToken(
+        teamId: number,
+        inviterId: number,
+        expiresInHours?: number,
+    ): Promise<IssueInviteTokenResponseDTO> {
+        const role = await this.teamRepository.getUserTeamRole(inviterId, teamId);
+        if (!role || role === TeamRole.Member) {
+            this.errorService.throw(TeamErrors.NO_PERMISSION_TO_INVITE);
+        }
+
+        const expiresAt = expiresInHours
+            ? new Date(Date.now() + expiresInHours * 3600 * 1000)
+            : null;
+
+        const saved = await this.teamRepository.generateInviteToken(teamId, inviterId, expiresAt);
+
+        return {
+            token: saved.token,
+            expiresAt: saved.expiresAt,
+        };
+    }
+
+    async resolveInviteToken(token: string): Promise<ResolveInviteTokenResponseDTO> {
+        const result = await this.teamRepository.findTeamByToken(token);
+
+        if (!result) {
+            this.errorService.throw(TeamErrors.INVALID_INVITE_TOKEN);
+        }
+
+        const { team } = result;
+
+        return {
+            teamId: team.id,
+            teamName: team.name,
+            description: team.description,
+            imageUrl: team.imageUrl,
+            visibility: team.visibility,
+        };
+    }
+
+
+    async acceptInviteToken(token: string, userId: number): Promise<VoidResponseDTO> {
+        const result = await this.teamRepository.findTeamByToken(token);
+
+        if (!result) {
+            this.errorService.throw(TeamErrors.INVALID_INVITE_TOKEN);
+        }
+
+        const { team, token: tokenEntity } = result;
+
+        if (tokenEntity.expiresAt && tokenEntity.expiresAt < new Date()) {
+            this.errorService.throw(TeamErrors.EXPIRED_INVITE_TOKEN);
+        }
+
+        const alreadyInTeam = await this.teamRepository.isUserInTeam(userId, team.id);
+        if (alreadyInTeam) {
+            this.errorService.throw(TeamErrors.ALREADY_JOINED_VIA_TOKEN);
+        }
+
+        await this.teamRepository.addUserToTeam(
+            team.id,
+            userId,
+            TeamRole.Member,
+            tokenEntity.createdBy,
+        );
+
+        return { message: '팀에 성공적으로 참여하였습니다.' };
+    }
+
+    async deleteInviteToken(token: string, userId: number): Promise<VoidResponseDTO> {
+        const invite = await this.teamRepository.findTeamByToken(token);
+
+        if (!invite) {
+            this.errorService.throw(TeamErrors.INVALID_INVITE_TOKEN);
+        }
+
+        if (invite.token.createdBy !== userId) {
+            this.errorService.throw(TeamErrors.NO_PERMISSION_TO_DELETE_TOKEN);
+        }
+
+        const deleted = await this.teamRepository.deleteInviteToken(token);
+
+        if (!deleted) {
+            this.errorService.throw(TeamErrors.INVALID_INVITE_TOKEN);
+        }
+
+        return { message: '초대 토큰이 정상적으로 삭제되었습니다.' };
+    }
+
 }
