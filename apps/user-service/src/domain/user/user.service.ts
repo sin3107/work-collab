@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from './user.repository';
-import { CreateUserDto } from './dtos/request/create-user.request.dto';
+import { CreateUserRequestDto } from './dtos/request/create-user.request.dto';
 import { UserEntity } from './entities/user.entity';
 import { ErrorService } from '@error';
 import { UserErrors } from '@error/constants/user.errors';
@@ -14,7 +14,7 @@ export class UserService {
     private readonly errorService: ErrorService
   ) { }
 
-  async createUser(dto: CreateUserDto): Promise<UserResponseDTO> {
+  async createUser(dto: CreateUserRequestDto): Promise<UserResponseDTO> {
     return await this.userRepository.createUser(dto);
   }
 

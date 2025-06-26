@@ -1,7 +1,7 @@
 import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserEntity } from './entities/user.entity';
-import { CreateUserDto } from './dtos/request/create-user.request.dto';
+import { CreateUserRequestDto } from './dtos/request/create-user.request.dto';
 import { ErrorResponse, Provider, SocialUserPayload, SuccessResponse } from '@common';
 import { UserErrors } from '@error/constants/user.errors';
 import { UserSuccess } from './response-defines/user-success';
@@ -13,7 +13,7 @@ export class UserController {
 
   @Post()
   @SuccessResponse(HttpStatus.CREATED, [UserSuccess['USER-S001']])
-  async create(@Body() dto: CreateUserDto): Promise<UserResponseDTO> {
+  async create(@Body() dto: CreateUserRequestDto): Promise<UserResponseDTO> {
     return await this.userService.createUser(dto);
 
   }

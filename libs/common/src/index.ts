@@ -14,6 +14,7 @@ export * from './entities/common.entity';
 // enums
 export * from './enums/http-error-name.enum';
 export * from './enums/user.enum';
+export * from './enums/team.enum'
 
 // exceptions
 export * from './exceptions/all-exceptions.filter';
