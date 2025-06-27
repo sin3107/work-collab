@@ -11,8 +11,8 @@ import { ErrorModule } from '@error';
     TypeOrmModule.forFeature([UserEntity]),
     ErrorModule
   ],
-  providers: [UserService, UserRepository],
   controllers: [UserController],
+  providers: [UserService, UserRepository],
   exports: [UserService],
 })
 export class UserModule { }

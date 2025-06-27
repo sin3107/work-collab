@@ -18,7 +18,6 @@ import { ResolveInviteTokenResponseDTO } from './dtos/response/resolve-invite-to
 @Injectable()
 export class TeamService {
     constructor(
-
         private readonly errorService: ErrorService,
         private readonly teamRepository: TeamRepository
     ) { }
