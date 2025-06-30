@@ -6,7 +6,8 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { randomUUID } from 'crypto';
 import { PresignUploadUrlResponseDTO } from './dtos/response/presign-url.response.dto';
-import { FileType } from '@common';
+import { FileType, VoidResponseDTO } from '@common';
+import { CompleteUploadRequestDTO } from './dtos/request/complete-upload.request.dto';
 
 @Injectable()
 export class FileService {
@@ -52,6 +53,12 @@ export class FileService {
     return { filename, url };
 
     // return this.fileRepository.getPresignedUploadUrl(type, ext);
+  }
+
+  async handleUploadComplete(dto: CompleteUploadRequestDTO): Promise<VoidResponseDTO> {
+    // 반환 정보를 기반으로 DB 저장 예정
+    console.log('업로드 완료 알림 수신:', dto);
+    return { message: "성공적으로 완료되었습니다" }
   }
 
 }

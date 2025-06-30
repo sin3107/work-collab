@@ -1,4 +1,4 @@
-import { SuccessResponseOption } from "@common";
+import { SuccessResponseOption, VoidResponseDTO } from "@common";
 import { UploadFileResponseDTO } from "../dtos/response/upload-file.response.dto";
 import { DeleteFileResponseDTO } from "../dtos/response/delete-file.response.dto";
 import { PresignUploadUrlResponseDTO } from "../dtos/response/presign-url.response.dto";
@@ -7,7 +7,8 @@ export type FileSuccessKeys =
   | 'FILE-S001'
   | 'FILE-S002'
   | 'FILE-S003'
-  | 'FILE-S004';
+  | 'FILE-S004'
+  | 'FILE-S005';
 
 export const FileSuccess: Record<FileSuccessKeys, SuccessResponseOption & { code: string }> = {
   'FILE-S001': {
@@ -17,7 +18,7 @@ export const FileSuccess: Record<FileSuccessKeys, SuccessResponseOption & { code
     code: 'FILE-S001',
   },
   'FILE-S002': {
-    model: undefined,
+    model: VoidResponseDTO,
     exampleTitle: '파일 조회 성공',
     exampleDescription: '파일이 성공적으로 전송됩니다.',
     code: 'FILE-S002',
@@ -33,5 +34,11 @@ export const FileSuccess: Record<FileSuccessKeys, SuccessResponseOption & { code
     exampleTitle: '업로드 URL 발급 성공',
     exampleDescription: '프론트엔드에서 직접 업로드할 수 있는 URL을 발급합니다.',
     code: 'FILE-S003',
+  },
+  'FILE-S005': {
+    model: VoidResponseDTO,
+    exampleTitle: '업로드 완료 처리 성공',
+    exampleDescription: '프론트에서 업로드한 파일이 성공적으로 서버에 보고되었습니다.',
+    code: 'FILE-S005',
   },
 };

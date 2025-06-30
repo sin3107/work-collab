@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -15,12 +16,13 @@ import { Express, Response } from 'express';
 import { SuccessResponse } from '@common/decorators/success-response.decorator';
 import { FileSuccess } from './response-defines/file-success';
 import { ApiOperation } from '@nestjs/swagger';
-import { ErrorResponse, FileType } from '@common';
+import { ErrorResponse, FileType, VoidResponseDTO } from '@common';
 import { FileErrors } from '@error/constants/file.errors';
 import { UploadFileResponseDTO } from './dtos/response/upload-file.response.dto';
 import { DeleteFileResponseDTO } from './dtos/response/delete-file.response.dto';
 import { PresignUploadUrlResponseDTO } from './dtos/response/presign-url.response.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { CompleteUploadRequestDTO } from './dtos/request/complete-upload.request.dto';
 
 @Controller('files')
 export class FileController {
@@ -28,7 +30,7 @@ export class FileController {
 
   @Post()
   @ApiOperation({ summary: '파일 업로드' })
-  @UseInterceptors(FileInterceptor('file')) 
+  @UseInterceptors(FileInterceptor('file'))
   @SuccessResponse(HttpStatus.CREATED, [FileSuccess['FILE-S001']])
   @ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, [FileErrors.FILE_UPLOAD_FAILED])
   async uploadFile(
@@ -64,5 +66,14 @@ export class FileController {
     @Query('ext') ext: string,
   ): Promise<PresignUploadUrlResponseDTO> {
     return this.fileService.getPresignedUploadUrl(type, ext);
+  }
+
+  @Post('complete')
+  @ApiOperation({ summary: 'Presign 업로드 완료 알림' })
+  @SuccessResponse(HttpStatus.OK, [FileSuccess['FILE-S005']])
+  async completeUpload(
+    @Body() dto: CompleteUploadRequestDTO,
+  ): Promise<VoidResponseDTO> {
+    return await this.fileService.handleUploadComplete(dto);
   }
 }
