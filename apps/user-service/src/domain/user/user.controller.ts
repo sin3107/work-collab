@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, ParseIntPipe, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserEntity } from './entities/user.entity';
 import { CreateUserRequestDto } from './dtos/request/create-user.request.dto';
@@ -28,7 +28,7 @@ export class UserController {
   @Get(':id')
   @SuccessResponse(HttpStatus.OK, [UserSuccess['USER-S003']])
   @ErrorResponse(HttpStatus.NOT_FOUND, [UserErrors.USER_NOT_FOUND])
-  async findById(@Param('id') id: number): Promise<UserResponseDTO> {
+  async findById(@Param('id', ParseIntPipe) id: number): Promise<UserResponseDTO> {
     return await this.userService.getUserById(id);
   }
 

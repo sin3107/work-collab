@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpStatus, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpStatus, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TeamService } from './team.service';
 import { CurrentUser, ErrorResponse, SuccessResponse, VoidResponseDTO } from '@common';
@@ -49,7 +49,7 @@ export class TeamController {
     @ErrorResponse(HttpStatus.NOT_FOUND, [TeamErrors.TEAM_NOT_FOUND])
     @ErrorResponse(HttpStatus.FORBIDDEN, [TeamErrors.TEAM_DELETE_FORBIDDEN])
     async updateTeam(
-        @Param('teamId') teamId: number,
+        @Param('teamId', ParseIntPipe) teamId: number,
         @Body() dto: UpdateTeamRequestDTO,
         @CurrentUser() user: { id: number }
     ): Promise<UpdateTeamResponseDTO> {
@@ -65,7 +65,7 @@ export class TeamController {
     ])
     @ErrorResponse(HttpStatus.NOT_FOUND, [TeamErrors.TEAM_NOT_FOUND])
     async deleteTeam(
-        @Param('teamId') teamId: number,
+        @Param('teamId', ParseIntPipe) teamId: number,
         @CurrentUser() user: { id: number },
     ): Promise<VoidResponseDTO> {
         return await this.teamService.deleteTeam(teamId, user.id);
@@ -75,7 +75,7 @@ export class TeamController {
     @ApiOperation({ summary: '팀원 조회' })
     @SuccessResponse(HttpStatus.OK, [TeamSuccess['TEAM-S006']])
     @ErrorResponse(HttpStatus.NOT_FOUND, [TeamErrors.TEAM_NOT_FOUND])
-    async getTeamMembers(@Param('teamId') teamId: number): Promise<TeamMemberListResponseDTO> {
+    async getTeamMembers(@Param('teamId', ParseIntPipe) teamId: number): Promise<TeamMemberListResponseDTO> {
         return this.teamService.getTeamMembers(teamId);
     }
 
@@ -86,7 +86,7 @@ export class TeamController {
     @ErrorResponse(HttpStatus.CONFLICT, [TeamErrors.USER_ALREADY_IN_TEAM])
     @ErrorResponse(HttpStatus.NOT_FOUND, [TeamErrors.TEAM_NOT_FOUND])
     async inviteUser(
-        @Param('teamId') teamId: number,
+        @Param('teamId', ParseIntPipe) teamId: number,
         @Body() dto: InviteUserRequestDTO,
         @CurrentUser() user
     ): Promise<InviteUserResponseDTO> {
@@ -99,7 +99,7 @@ export class TeamController {
     @ErrorResponse(HttpStatus.FORBIDDEN, [TeamErrors.NO_PERMISSION_TO_CHANGE_ROLE])
     @ErrorResponse(HttpStatus.NOT_FOUND, [TeamErrors.USER_NOT_IN_TEAM])
     async changeRole(
-        @Param('teamId') teamId: number,
+        @Param('teamId', ParseIntPipe) teamId: number,
         @Body() dto: ChangeRoleRequestDTO,
         @CurrentUser() user: { id: number }
     ): Promise<ChangeRoleResponseDTO> {
@@ -113,7 +113,7 @@ export class TeamController {
     @ErrorResponse(HttpStatus.BAD_REQUEST, [TeamErrors.OWNER_CANNOT_LEAVE_TEAM])
     @ErrorResponse(HttpStatus.NOT_FOUND, [TeamErrors.TEAM_NOT_FOUND])
     async leaveTeam(
-        @Param('teamId') teamId: number,
+        @Param('teamId', ParseIntPipe) teamId: number,
         @CurrentUser() user: { id: number },
     ): Promise<VoidResponseDTO> {
         return await this.teamService.leaveTeam(teamId, user.id);
@@ -124,7 +124,7 @@ export class TeamController {
     @SuccessResponse(HttpStatus.CREATED, [TeamSuccess['TEAM-S009']])
     @ErrorResponse(HttpStatus.FORBIDDEN, [TeamErrors.NO_PERMISSION_TO_INVITE])
     async issueInviteToken(
-        @Param('teamId') teamId: number,
+        @Param('teamId', ParseIntPipe) teamId: number,
         @Body() dto: IssueInviteTokenRequestDTO,
         @CurrentUser() user: { id: number }
     ): Promise<IssueInviteTokenResponseDTO> {
