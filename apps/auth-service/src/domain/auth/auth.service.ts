@@ -30,7 +30,7 @@ export class AuthService {
         `http://user-service:3001/users/email/${dto.email}`,
         (error) => {
           if (error.response?.status === 404) {
-            return null; // 이메일 없음 → 정상
+            return null;
           }
           return AuthErrors.USER_SERVICE_COMMUNICATION_FAILED;
         }
