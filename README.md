@@ -1,99 +1,112 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 📌 업무관리 시스템 (MSA 기반)
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+> 팀/개인 일정, 채팅, 파일 업로드, 업무 할당 등을 지원하는 **Microservice Architecture 기반 협업 시스템**입니다.  
+> NestJS, Docker, PostgreSQL, MongoDB, Redis 등을 활용하여 서비스별로 독립적으로 구성되어 있으며, `docker-compose`를 통해 전체 시스템을 손쉽게 실행할 수 있습니다.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🛠️ 기술 스택
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| 구분         | 사용 기술 |
+|--------------|-----------|
+| Backend      | NestJS (v10+), TypeORM, Mongoose, Passport |
+| Database     | PostgreSQL (RDB), MongoDB (NoSQL), Redis (Pub/Sub, Cache) |
+| API 문서화   | Swagger (OpenAPI 3.0) |
+| 인증         | JWT 인증 / Refresh Token / Local Strategy |
+| 인프라       | Docker, Docker Compose, NGINX (Gateway 예정) |
+| 통신 방식    | REST API + WebSocket(STOMP) + Redis Pub/Sub |
+| 프로젝트 구조 | Monorepo (Nx 기반 아님), Domain-Driven Architecture |
+| 기타         | Joi Validation, 환경별 설정 분리, 글로벌 예외 처리 및 응답 포맷 통일 등 |
 
-## Project setup
+---
 
-```bash
-$ npm install
-```
+## 📁 서비스 구성 (MSA)
 
-## Compile and run the project
+| 서비스명        | 설명 |
+|-----------------|------|
+| **auth-service** | 로그인, 회원가입, 토큰 발급/갱신/로그아웃 등 인증 기능 |
+| **user-service** | 유저 프로필, 팀 연동, 유저-팀 관계 관리 |
+| **file-service** | S3 업로드 기반의 파일 업로드/다운로드 관리 |
+| **chat-service** | 팀 기반 채팅방 생성, 메시지 저장/전송, 실시간 WebSocket 채팅 |
+| **task-service** | 일정, 업무 태스크 생성/조회, 캘린더 연동 기능 (예정) |
 
-```bash
-# development
-$ npm run start
+---
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+## ⚙️ 실행 방법
 
 ```bash
-# unit tests
-$ npm run test
+# 1. 환경 설정
+cp .env.example .env  # 또는 각 서비스의 .env 생성
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+# 2. 모든 서비스를 Docker로 실행
+docker-compose up --build
 ```
 
-## Deployment
+> ✅ `docker-compose.yml`은 각 서비스의 Dockerfile과 `.env`를 기반으로 PostgreSQL, Redis, MongoDB와 함께 실행됩니다.
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+---
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+## 📌 주요 기능
 
-```bash
-$ npm install -g mau
-$ mau deploy
+- ✅ **회원가입/로그인/로그아웃/토큰 갱신** (auth-service)
+- ✅ **유저 정보 조회, 팀 초대/가입** (user-service)
+- ✅ **파일 업로드/다운로드 (S3 연동)** (file-service)
+- ✅ **채팅방 생성 / 메시지 저장 및 WebSocket 실시간 통신** (chat-service)
+- 🛠️ **업무 태스크/캘린더 기반 일정 관리** (task-service 예정)
+
+---
+
+## 📦 폴더 구조 (예시)
+
+```
+/work-collab
+├── apps/
+│   ├── auth-service/
+│   ├── user-service/
+│   ├── file-service/
+│   ├── chat-service/
+│   └── task-service/
+├── libs/
+│   ├── common/      # 공통 DTO, 인터셉터, 데코레이터 등
+│   └── bootstrap/   # 공통 bootstrap, config
+└── docker-compose.yml
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+---
 
-## Resources
+## 📄 Swagger API 문서
 
-Check out a few resources that may come in handy when working with NestJS:
+각 서비스는 `/docs` 엔드포인트에서 Swagger 문서를 제공합니다.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+예시: [http://localhost:3000/docs](http://localhost:3000/docs)
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 🧪 개발 진행 상태
 
-## Stay in touch
+- [x] 인증 서버 개발 완료
+- [x] 유저/팀 기능 완료
+- [x] 파일 업로드 기능 개발 중
+- [x] 메시지 저장 및 Redis 발행 구조 완료
+- [ ] WebSocket 통합 및 채팅방 관리
+- [ ] 업무 일정 관리 기능 개발 예정
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+---
 
-## License
+## 🧑‍💻 개발자 노트
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+- 모든 API 응답은 `SuccessResponse`, `ErrorResponse` 구조로 통일
+- DTO 기반의 엄격한 타입 검증 및 Swagger 문서화
+- 실서비스 수준의 인증 흐름 및 보안 고려 (Refresh Token, Blacklisting 등)
+- 테스트 및 운영환경 분리된 `.env` 및 설정 모듈 적용
+
+---
+
+## 📝 추후 계획
+
+- ✅ 채팅방 캐싱 및 메시지 세션 관리 (Redis 활용)
+- ✅ 팀 자동 참여 채널 구성
+- ✅ WebSocket 인증 통합
+- 🧩 Kafka 기반 이벤트 처리 (차후 확장 가능성 고려)
+- 🧩 NGINX 기반 Gateway 및 서비스 라우팅
+
